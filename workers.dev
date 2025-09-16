@@ -1,0 +1,30 @@
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+})
+
+async function handleRequest(request) {
+  if(request.method !== 'POST'){
+    return new Response('POST only', {status:405})
+  }
+
+  const { text, voiceId } = await request.json();
+  const apiKey = 'sk_d00c98db96d85e4251abba37045d1d31e30b376e55a1fab9'; // hidden key
+
+  const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'xi-api-key': apiKey
+    },
+    body: JSON.stringify({
+      text: text,
+      voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+    })
+  });
+
+  const arrayBuffer = await resp.arrayBuffer();
+  return new Response(arrayBuffer, {
+    status: 200,
+    headers: { 'Content-Type': 'audio/mpeg', 'Access-Control-Allow-Origin':'*' }
+  });
+}
